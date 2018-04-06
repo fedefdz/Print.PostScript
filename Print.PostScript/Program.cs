@@ -71,14 +71,12 @@ namespace Print.PostScript
                 #endregion Get Connected Printer Name
 
                 
-                FileStream fs = new FileStream(pdfFileName, FileMode.Open);
-                
+                FileStream fs = new FileStream(pdfFileName, FileMode.Open);                
 
                 BinaryReader br = new BinaryReader(fs);
                 Byte[] bytes = new Byte[fs.Length];
                 bool success = false;
-                
-                
+                                
                 // Unmanaged pointer.
                 IntPtr ptrUnmanagedBytes = new IntPtr(0);
                 int nLength = Convert.ToInt32(fs.Length);
@@ -87,10 +85,13 @@ namespace Print.PostScript
                 bytes = br.ReadBytes(nLength);
                 // Allocate some unmanaged memory for those bytes.
                 ptrUnmanagedBytes = Marshal.AllocCoTaskMem(nLength);
+
                 // Copy the managed byte array into the unmanaged array.
                 Marshal.Copy(bytes, 0, ptrUnmanagedBytes, nLength);
                 // Send the unmanaged bytes to the printer.
-                success = SendBytesToPrinter(pd.PrinterSettings.PrinterName, ptrUnmanagedBytes, nLength);
+                SendStringToPrinter(pd.PrinterSettings.PrinterName, "Hola Sisfarma!");
+
+                //success = SendBytesToPrinter(pd.PrinterSettings.PrinterName, ptrUnmanagedBytes, nLength);
                 // Free the unmanaged memory that you allocated earlier.
                 Marshal.FreeCoTaskMem(ptrUnmanagedBytes);
                 return success;
@@ -118,7 +119,7 @@ namespace Print.PostScript
                 bool success = false; // Assume failure unless you specifically succeed.
 
                 di.pDocName = "Ticket Document";
-                di.pDataType = "RAW";
+                di.pDataType = "XPS_PASS";
 
                 // Open the printer.
                 if (OpenPrinter(szPrinterName.Normalize(), out hPrinter, IntPtr.Zero))
@@ -150,6 +151,25 @@ namespace Print.PostScript
                 throw new Exception(ex.Message);
             }
         }
+
+        public static bool SendStringToPrinter(string szPrinterName, string szString)
+        {
+            IntPtr pBytes;
+            Int32 dwCount;
+
+            // How many characters are in the string?
+            // Fix from Nicholas Piasecki:
+            // dwCount = szString.Length;
+            dwCount = (szString.Length + 1) * Marshal.SystemMaxDBCSCharSize;
+
+            // Assume that the printer is expecting ANSI text, and then convert
+            // the string to ANSI text.
+            pBytes = Marshal.StringToCoTaskMemAnsi(szString);
+            // Send the converted ANSI string to the printer.
+            SendBytesToPrinter(szPrinterName, pBytes, dwCount);
+            Marshal.FreeCoTaskMem(pBytes);
+            return true;
+        }
         #endregion Methods
     }
 }
@@ -168,7 +188,7 @@ class Program
             Console.WriteLine(@"JUANMA se imprime el archivo C:\Sisfarma.es\TURNO.pdf");
             Console.WriteLine(@"Imprimiendo ...");
 
-            RawPrinterHelper.SendFileToPrinter(@"C:\Sisfarma.es\TURNO.pdf");
+            RawPrinterHelper.SendFileToPrinter(@"C:\Sisfarma.es\holamundo.txt");
             Console.WriteLine(@"Impresión finaliza con éxito.");
         }
 
