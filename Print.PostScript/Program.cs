@@ -9,7 +9,8 @@ namespace Print.PostScript
 {
     public class RawPrinterHelper
     {
-        // Estructturas y APIs:
+        #region Estructturas ..
+        
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
         private class DOCINFOA
         {
@@ -21,7 +22,10 @@ namespace Print.PostScript
             public string pDataType;
         }
 
-        #region dll Wrappers
+        #endregion
+
+        #region Dll Wrappers ..
+
         [DllImport("winspool.Drv", EntryPoint = "OpenPrinterA", SetLastError = true, CharSet = CharSet.Ansi, ExactSpelling = true, CallingConvention = CallingConvention.StdCall)]
         private static extern bool OpenPrinter([MarshalAs(UnmanagedType.LPStr)] string szPrinter, out IntPtr hPrinter, IntPtr pd);
 
@@ -49,6 +53,7 @@ namespace Print.PostScript
         #endregion dll Wrappers
 
         #region Methods
+
         /// <summary>
         /// A partir de la ruta y nombre de un archivo pdf.
         /// Abre el archivo, obtenos sus btyes y envía en forma plana a imprimir.        
