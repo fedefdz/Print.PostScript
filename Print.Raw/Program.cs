@@ -15,7 +15,7 @@ namespace Print.Raw
     {
         #region Structure and API declarions ...
         
-        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
         private class DOCINFOA
         {
             [MarshalAs(UnmanagedType.LPStr)] public string pDocName;
@@ -23,28 +23,28 @@ namespace Print.Raw
             [MarshalAs(UnmanagedType.LPStr)] public string pDataType;
         }
 
-        [DllImport("winspool.Drv", EntryPoint = "OpenPrinterA", SetLastError = true, CharSet = CharSet.Ansi, ExactSpelling = true, CallingConvention = CallingConvention.StdCall)]
+        [DllImport("winspool.Drv", EntryPoint = "OpenPrinterA", SetLastError = true, CharSet = CharSet.Unicode, ExactSpelling = true, CallingConvention = CallingConvention.StdCall)]
         private static extern bool OpenPrinter([MarshalAs(UnmanagedType.LPStr)] string szPrinter, out IntPtr hPrinter, IntPtr pd);
 
         [DllImport("winspool.Drv", EntryPoint = "ClosePrinter", SetLastError = true, ExactSpelling = true, CallingConvention = CallingConvention.StdCall)]
         private static extern bool ClosePrinter(IntPtr hPrinter);
 
-        [DllImport("winspool.Drv", EntryPoint = "StartDocPrinterA", SetLastError = true, CharSet = CharSet.Ansi, ExactSpelling = true, CallingConvention = CallingConvention.StdCall)]
+        [DllImport("winspool.Drv", EntryPoint = "StartDocPrinterA", SetLastError = true, CharSet = CharSet.Unicode, ExactSpelling = true, CallingConvention = CallingConvention.StdCall)]
         private static extern bool StartDocPrinter(IntPtr hPrinter, int level, [In, MarshalAs(UnmanagedType.LPStruct)] DOCINFOA di);
 
-        [DllImport("winspool.Drv", EntryPoint = "EndDocPrinter", SetLastError = true, ExactSpelling = true, CallingConvention = CallingConvention.StdCall)]
+        [DllImport("winspool.Drv", EntryPoint = "EndDocPrinter", SetLastError = true,  CharSet = CharSet.Unicode, ExactSpelling = true, CallingConvention = CallingConvention.StdCall)]
         private static extern bool EndDocPrinter(IntPtr hPrinter);
 
-        [DllImport("winspool.Drv", EntryPoint = "StartPagePrinter", SetLastError = true, ExactSpelling = true, CallingConvention = CallingConvention.StdCall)]
+        [DllImport("winspool.Drv", EntryPoint = "StartPagePrinter", SetLastError = true, CharSet = CharSet.Unicode, ExactSpelling = true, CallingConvention = CallingConvention.StdCall)]
         private static extern bool StartPagePrinter(IntPtr hPrinter);
 
-        [DllImport("winspool.Drv", EntryPoint = "EndPagePrinter", SetLastError = true, ExactSpelling = true, CallingConvention = CallingConvention.StdCall)]
+        [DllImport("winspool.Drv", EntryPoint = "EndPagePrinter", SetLastError = true, CharSet = CharSet.Unicode, ExactSpelling = true, CallingConvention = CallingConvention.StdCall)]
         private static extern bool EndPagePrinter(IntPtr hPrinter);
 
-        [DllImport("winspool.Drv", EntryPoint = "WritePrinter", SetLastError = true, ExactSpelling = true, CallingConvention = CallingConvention.StdCall)]
+        [DllImport("winspool.Drv", EntryPoint = "WritePrinter", SetLastError = true, CharSet = CharSet.Unicode, ExactSpelling = true, CallingConvention = CallingConvention.StdCall)]
         private static extern bool WritePrinter(IntPtr hPrinter, IntPtr pBytes, int dwCount, out int dwWritten);
 
-        [DllImport("winspool.drv", CharSet = CharSet.Auto, SetLastError = true)]
+        [DllImport("winspool.drv", CharSet = CharSet.Unicode, SetLastError = true)]
         private static extern bool GetDefaultPrinter(StringBuilder pszBuffer, ref int size);
 
         #endregion
@@ -174,7 +174,7 @@ namespace Print.Raw
         }
 
         public string NormalizeCharacters(string text)
-        {
+        {            
             text = text.Replace('Á', (char) 181).Replace("&Aacute;", Convert.ToString((char) 181))
                 .Replace('á', (char) 160).Replace("&aacute;", Convert.ToString((char) 160))
                 .Replace('À', (char) 183).Replace("&Agrave;", Convert.ToString((char) 181))
@@ -220,7 +220,10 @@ namespace Print.Raw
 
                 .Replace('º', (char) 167).Replace("&ordm;", Convert.ToString((char) 167))
                 .Replace('ª', (char) 166).Replace("&ordf;", Convert.ToString((char) 166));
-            return text;
+         
+            byte[] bytes = Encoding.Unicode.GetBytes(text);
+            text = Encoding.Unicode.GetString(bytes);
+            return text;            
         }
 
         public string GetDefaultPrinter()
@@ -330,8 +333,9 @@ namespace Print.Raw
         }
 
         public void Print()
-        {
+        {            
             string text = Initialize + Text + CutPaper;
+            text = text.Normalize();
             SendStringToPrinter(PrinterName, text);
         }
 
