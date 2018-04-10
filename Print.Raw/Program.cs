@@ -129,7 +129,12 @@ namespace Print.Raw
 
             // Assume that the printer is expecting ANSI text, and then convert
             // the string to ANSI text.
-            pBytes = Marshal.StringToCoTaskMemAnsi(szString);
+            //pBytes = Marshal.StringToCoTaskMemAnsi(szString);
+
+            // Assume that the printer is expecting ANSI text, and then convert
+            // the string to Unicode text.
+            pBytes = Marshal.StringToCoTaskMemUni(szString);
+
             // Send the converted ANSI string to the printer.
             SendBytesToPrinter(szPrinterName, pBytes, dwCount);
             Marshal.FreeCoTaskMem(pBytes);
@@ -174,7 +179,7 @@ namespace Print.Raw
         }
 
         public string NormalizeCharacters(string text)
-        {            
+        {
             text = text.Replace('Á', (char) 181).Replace("&Aacute;", Convert.ToString((char) 181))
                 .Replace('á', (char) 160).Replace("&aacute;", Convert.ToString((char) 160))
                 .Replace('À', (char) 183).Replace("&Agrave;", Convert.ToString((char) 181))
@@ -203,7 +208,7 @@ namespace Print.Raw
                 .Replace('Ö', (char) 153).Replace("&Ouml;", Convert.ToString((char) 153))
                 .Replace('ö', (char) 148).Replace("&ouml;", Convert.ToString((char) 148))
 
-                .Replace('Ú', (char) 233).Replace("&Uacute;", Convert.ToString((char) 233))
+                .Replace('Ú', (char)218).Replace("&Uacute;", Convert.ToString((char) 233))
                 .Replace('ú', (char) 163).Replace("&uacute;", Convert.ToString((char) 163))
                 .Replace('Ù', (char) 235).Replace("&Ugrave;", Convert.ToString((char) 235))
                 .Replace('ù', (char) 151).Replace("&ugrave;", Convert.ToString((char) 151))
@@ -382,8 +387,13 @@ namespace Print.Raw
                     printer.DrawLine(RawPrinter.SizeH1 + txt);
                 }
 
+                //var ascii = printer.NormalizeCharacters("ÁÉÍÓÚ");
                 printer.BarCodeModelA("14159265");
                 printer.BarCodeModelB("14159265");
+
+                // Borramos, sólo imprmimos Ú.
+                printer.Clear();
+                printer.DrawLine("Ú");
                 printer.Print();
                 
 
